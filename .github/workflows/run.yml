@@ -1,38 +1,78 @@
 name: Run Qwen2.5 Chat API
+
 on:
   workflow_dispatch:
   push:
     branches: [main]
+    paths-ignore:
+      - 'api_url.json'
+
+permissions:
+  contents: write
+
 jobs:
   serve:
     runs-on: ubuntu-latest
     timeout-minutes: 350
+
     steps:
       - uses: actions/checkout@v3
+
       - uses: actions/setup-python@v4
         with:
           python-version: '3.10'
-      - name: Install deps
+
+      # Cache pip packages - skip re-download if unchanged
+      - name: Cache pip
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: ${{ runner.os }}-pip-
+
+      # Cache HuggingFace model - biggest win: ~1GB model cached after first run
+      - name: Cache HuggingFace model
+        uses: actions/cache@v3
+        with:
+          path: ./model
+          key: hf-qwen2.5-0.5b-instruct-v1
+          restore-keys: hf-qwen2.5-0.5b-instruct-
+
+      - name: Install Python deps
         run: pip install -r requirements.txt
+
       - name: Install cloudflared
         run: |
           wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
           sudo dpkg -i cloudflared-linux-amd64.deb
-      - name: Start API and tunnel
+
+      - name: Start API + Tunnel + Publish URL
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_PAT: ${{ secrets.GH_PAT }}
         run: |
           python app.py &
-          echo "Waiting 120s for model to load..."
-          sleep 120
+          APP_PID=$!
+          echo "Waiting for Flask + model to load..."
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:7860 > /dev/null 2>&1; then
+              echo "Flask ready after ${i}0s"
+              break
+            fi
+            sleep 10
+          done
+
           cloudflared tunnel --url http://localhost:7860 --no-autoupdate > /tmp/cf.log 2>&1 &
-          sleep 20
+          sleep 15
           URL=$(grep -oP 'https://[a-z0-9-]+\.trycloudflare\.com' /tmp/cf.log | head -1)
           echo "Tunnel URL: $URL"
+
           printf '{"url":"%s","status":"online","updated":"%s"}\n' "$URL" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > api_url.json
+
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add api_url.json
-          git commit -m "chore: update API URL [skip ci]" || true
-          git push "https://x-access-token:${GITHUB_TOKEN}@github.com/PranayMahendrakar/qwen-runner.git" HEAD:main
-          wait
+          git commit -m "chore: update API URL [skip ci]" || echo "no change"
+          git push "https://x-access-token:${GH_PAT}@github.com/PranayMahendrakar/qwen-runner.git" HEAD:main
+
+          echo "Chat UI live at: https://pranaymahendrakar.github.io/qwen-runner/"
+          wait $APP_PID
