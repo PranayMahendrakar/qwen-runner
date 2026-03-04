@@ -7,12 +7,12 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Segoe UI',sans-serif;background:#0d1117;color:#e6edf3;height:100vh;display:flex;flex-direction:column}
-#header{background:#161b22;border-bottom:1px solid #30363d;padding:12px 20px;display:flex;align-items:center;justify-content:space-between}
+#header{background:#161b22;border-bottom:1px solid #30363d;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
 .header-left{display:flex;align-items:center;gap:12px}
 .bot-icon{font-size:32px}
 .bot-name{font-size:20px;font-weight:700;color:#e6edf3}
 .bot-sub{font-size:12px;color:#8b949e}
-.status-badge{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px}
+.status-badge{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600}
 .status-badge.online{background:#1a4731;color:#3fb950;border:1px solid #238636}
 .status-badge.offline{background:#3d1f1f;color:#f85149;border:1px solid #da3633}
 .status-badge.checking{background:#2d2a1f;color:#d29922;border:1px solid #9e6a03}
@@ -29,22 +29,24 @@ body{font-family:'Segoe UI',sans-serif;background:#0d1117;color:#e6edf3;height:1
 .bubble{padding:12px 16px;border-radius:12px;line-height:1.6;font-size:14px;max-width:650px;white-space:pre-wrap;word-break:break-word}
 .msg.bot .bubble{background:#161b22;border:1px solid #30363d;border-radius:4px 12px 12px 12px}
 .msg.user .bubble{background:#2d1b69;border-radius:12px 4px 12px 12px}
-.typing{display:flex;gap:4px;padding:8px}
+.cursor{display:inline-block;width:2px;height:14px;background:#7c85f5;margin-left:2px;animation:blink .7s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.typing{display:flex;gap:4px;padding:8px;align-items:center}
 .dot{width:8px;height:8px;border-radius:50%;background:#8b949e;animation:bounce 1.2s infinite}
 .dot:nth-child(2){animation-delay:.2s}
 .dot:nth-child(3){animation-delay:.4s}
 @keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-8px)}}
-#input-area{background:#161b22;border-top:1px solid #30363d;padding:16px 20px}
+#input-area{background:#161b22;border-top:1px solid #30363d;padding:16px 20px;flex-shrink:0}
 .input-row{display:flex;gap:10px;align-items:flex-end}
 #msg-input{flex:1;background:#0d1117;border:1px solid #30363d;border-radius:8px;color:#e6edf3;padding:10px 14px;font-size:14px;resize:none;min-height:44px;max-height:140px;font-family:inherit;outline:none;transition:border-color .2s}
 #msg-input:focus{border-color:#7c85f5}
-#send-btn{width:44px;height:44px;background:#5046e5;border:none;border-radius:8px;color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .2s}
+#send-btn{width:44px;height:44px;background:#5046e5;border:none;border-radius:8px;color:white;cursor:pointer;font-size:20px;flex-shrink:0;transition:background .2s}
 #send-btn:hover{background:#6460f0}
 #send-btn:disabled{background:#30363d;cursor:not-allowed}
 .input-hint{display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-size:11px;color:#6e7681}
 #clear-btn{background:transparent;border:1px solid #30363d;color:#8b949e;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:11px}
 #clear-btn:hover{border-color:#8b949e;color:#e6edf3}
-.error-bubble{background:#3d1f1f;border:1px solid #da3633;color:#f85149;padding:10px 14px;border-radius:8px;font-size:13px;margin:4px 0}
+.error-bubble{background:#3d1f1f;border:1px solid #da3633;color:#f85149;padding:10px 14px;border-radius:8px;font-size:13px}
 ::-webkit-scrollbar{width:6px}
 ::-webkit-scrollbar-track{background:#0d1117}
 ::-webkit-scrollbar-thumb{background:#30363d;border-radius:3px}
@@ -61,7 +63,6 @@ body{font-family:'Segoe UI',sans-serif;background:#0d1117;color:#e6edf3;height:1
   </div>
   <div id="status" class="status-badge checking">&#9203; Checking...</div>
 </div>
-
 <div id="messages">
   <div class="welcome" id="welcome">
     <div class="icon">&#129302;</div>
@@ -69,7 +70,6 @@ body{font-family:'Segoe UI',sans-serif;background:#0d1117;color:#e6edf3;height:1
     <p>A helpful AI assistant built by Pranay Mahendrakar, powered by Qwen2.5. Running live on GitHub Actions. Start chatting below!</p>
   </div>
 </div>
-
 <div id="input-area">
   <div class="input-row">
     <textarea id="msg-input" rows="1" placeholder="Type your message... (Enter to send)"></textarea>
@@ -80,11 +80,11 @@ body{font-family:'Segoe UI',sans-serif;background:#0d1117;color:#e6edf3;height:1
     <button id="clear-btn" onclick="clearChat()">&#128465; Clear chat</button>
   </div>
 </div>
-
 <script>
 var apiUrl = null;
-var history = [{role:"system",content:"You are Pranay AI Bot, a helpful AI assistant. You are built by Pranay Mahendrakar and powered by Qwen2.5."}];
+var chatHistory = [{role:"system",content:"You are Pranay AI Bot, a helpful AI assistant. You are built by Pranay Mahendrakar and powered by Qwen2.5."}];
 var polling = null;
+var sending = false;
 
 function setStatus(state, text) {
   var el = document.getElementById('status');
@@ -92,25 +92,52 @@ function setStatus(state, text) {
   el.textContent = text;
 }
 
-function addMsg(role, text) {
-  var welcome = document.getElementById('welcome');
-  if (welcome) welcome.remove();
+function removeWelcome() {
+  var w = document.getElementById('welcome');
+  if (w) w.remove();
+}
+
+function addUserMsg(text) {
+  removeWelcome();
   var msgs = document.getElementById('messages');
   var div = document.createElement('div');
-  div.className = 'msg ' + role;
+  div.className = 'msg user';
   var av = document.createElement('div');
   av.className = 'avatar';
-  av.textContent = role === 'user' ? String.fromCodePoint(0x1F464) : String.fromCodePoint(0x1F916);
+  av.textContent = String.fromCodePoint(0x1F464);
   var bub = document.createElement('div');
   bub.className = 'bubble';
   bub.textContent = text;
-  div.appendChild(av);
   div.appendChild(bub);
+  div.appendChild(av);
   msgs.appendChild(div);
   msgs.scrollTop = msgs.scrollHeight;
 }
 
+function addBotMsg() {
+  removeWelcome();
+  var msgs = document.getElementById('messages');
+  var div = document.createElement('div');
+  div.className = 'msg bot';
+  div.id = 'bot-typing';
+  var av = document.createElement('div');
+  av.className = 'avatar';
+  av.textContent = String.fromCodePoint(0x1F916);
+  var bub = document.createElement('div');
+  bub.className = 'bubble';
+  bub.id = 'bot-bubble';
+  var cursor = document.createElement('span');
+  cursor.className = 'cursor';
+  bub.appendChild(cursor);
+  div.appendChild(av);
+  div.appendChild(bub);
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  return bub;
+}
+
 function addError(text) {
+  removeWelcome();
   var msgs = document.getElementById('messages');
   var div = document.createElement('div');
   div.className = 'error-bubble';
@@ -119,71 +146,65 @@ function addError(text) {
   msgs.scrollTop = msgs.scrollHeight;
 }
 
-function showTyping() {
-  var msgs = document.getElementById('messages');
-  var div = document.createElement('div');
-  div.className = 'msg bot';
-  div.id = 'typing-indicator';
-  var av = document.createElement('div');
-  av.className = 'avatar';
-  av.textContent = String.fromCodePoint(0x1F916);
-  var bub = document.createElement('div');
-  bub.className = 'bubble typing';
-  for (var i=0;i<3;i++) {
-    var dot = document.createElement('div');
-    dot.className = 'dot';
-    bub.appendChild(dot);
-  }
-  div.appendChild(av);
-  div.appendChild(bub);
-  msgs.appendChild(div);
-  msgs.scrollTop = msgs.scrollHeight;
-}
-
-function removeTyping() {
-  var t = document.getElementById('typing-indicator');
-  if (t) t.remove();
-}
-
 function clearChat() {
-  history = [{role:"system",content:"You are Pranay AI Bot, a helpful AI assistant. You are built by Pranay Mahendrakar and powered by Qwen2.5."}];
+  chatHistory = [{role:"system",content:"You are Pranay AI Bot, a helpful AI assistant. You are built by Pranay Mahendrakar and powered by Qwen2.5."}];
   var msgs = document.getElementById('messages');
   msgs.innerHTML = '';
-  var welcome = document.createElement('div');
-  welcome.className = 'welcome';
-  welcome.id = 'welcome';
-  welcome.innerHTML = '<div class="icon">&#129302;</div><h2>Chat cleared!</h2><p>Start a new conversation.</p>';
-  msgs.appendChild(welcome);
+  var w = document.createElement('div');
+  w.className = 'welcome';
+  w.id = 'welcome';
+  w.innerHTML = '<div class="icon">&#129302;</div><h2>Chat cleared!</h2><p>Start a new conversation.</p>';
+  msgs.appendChild(w);
 }
 
 function sendMsg() {
+  if (sending) return;
   var input = document.getElementById('msg-input');
   var text = input.value.trim();
   if (!text) return;
-  if (!apiUrl) { addError('Bot is offline. Please wait for the backend to start.'); return; }
+  if (!apiUrl) { addError('Bot is offline. Please wait...'); return; }
   input.value = '';
   input.style.height = 'auto';
-  addMsg('user', text);
-  history.push({role:"user", content:text});
+  sending = true;
   document.getElementById('send-btn').disabled = true;
-  showTyping();
+
+  addUserMsg(text);
+  chatHistory.push({role:"user", content:text});
+
+  var bub = addBotMsg();
+  var accumulated = '';
+
   fetch(apiUrl + '/chat', {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({messages: history})
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({messages: chatHistory})
   })
-  .then(function(r){ return r.json(); })
+  .then(function(r) {
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  })
   .then(function(data) {
-    removeTyping();
     var reply = data.response || data.reply || data.message || JSON.stringify(data);
-    addMsg('bot', reply);
-    history.push({role:"assistant", content:reply});
-    document.getElementById('send-btn').disabled = false;
+    accumulated = reply;
+    bub.textContent = reply;
+    chatHistory.push({role:"assistant", content:reply});
+    document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
   })
   .catch(function(err) {
-    removeTyping();
-    addError('Error: ' + err.message);
+    bub.textContent = '';
+    var d = document.getElementById('bot-typing');
+    if (d) d.remove();
+    addError('Error: ' + err.message + '. Try refreshing the page.');
+  })
+  .finally(function() {
+    sending = false;
     document.getElementById('send-btn').disabled = false;
+    var cursor = bub.querySelector('.cursor');
+    if (cursor) cursor.remove();
+    var d = document.getElementById('bot-typing');
+    if (d) d.removeAttribute('id');
+    var b = document.getElementById('bot-bubble');
+    if (b) b.removeAttribute('id');
   });
 }
 
@@ -192,9 +213,9 @@ function pollAPI() {
   .then(function(r){ return r.json(); })
   .then(function(data) {
     var url = data.url || data.api_url;
-    if (!url) throw new Error('No URL');
+    if (!url) throw new Error('no url');
     return fetch(url + '/', {signal: AbortSignal.timeout(8000)})
-    .then(function(r){ return r.ok ? url : null; });
+    .then(function(r) { return r.ok ? url : null; });
   })
   .then(function(url) {
     if (url) {
