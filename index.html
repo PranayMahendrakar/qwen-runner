@@ -193,7 +193,7 @@ function pollAPI() {
   .then(function(data) {
     var url = data.url || data.api_url;
     if (!url) throw new Error('No URL');
-    return fetch(url + '/health', {signal: AbortSignal.timeout(8000)})
+    return fetch(url + '/', {signal: AbortSignal.timeout(8000)})
     .then(function(r){ return r.ok ? url : null; });
   })
   .then(function(url) {
