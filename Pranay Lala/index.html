@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pranay Lala – AI by Pranay Mahendrakar</title>
+  <style>
+    :root {
+      --bg: #0d0d0d;
+      --surface: #1a1a2e;
+      --card: #16213e;
+      --accent: #e94560;
+      --accent2: #0f3460;
+      --text: #eaeaea;
+      --sub: #a0a0b0;
+      --user-bubble: #0f3460;
+      --bot-bubble: #1a1a2e;
+      --border: #2a2a4a;
+      --glow: 0 0 18px #e9456044;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-shrink: 0;
+      box-shadow: 0 2px 20px #00000066;
+    }
+    .avatar {
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), #ff6b6b);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; font-weight: 900;
+      box-shadow: var(--glow);
+      flex-shrink: 0;
+    }
+    .header-info h1 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      background: linear-gradient(90deg, var(--accent), #ff6b6b);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .header-info p { font-size: 0.72rem; color: var(--sub); margin-top: 1px; }
+    .status-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #4caf50; display: inline-block; margin-right: 5px;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
+    .badge {
+      margin-left: auto;
+      background: linear-gradient(135deg, var(--accent), #ff6b6b);
+      color: #fff; font-size: 0.65rem; font-weight: 700;
+      padding: 3px 10px; border-radius: 20px;
+      letter-spacing: 0.5px; text-transform: uppercase;
+    }
+    #messages {
+      flex: 1; overflow-y: auto; padding: 20px 16px;
+      display: flex; flex-direction: column; gap: 14px; scroll-behavior: smooth;
+    }
+    #messages::-webkit-scrollbar{width:5px}
+    #messages::-webkit-scrollbar-track{background:transparent}
+    #messages::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px}
+    .msg-row { display: flex; gap: 10px; animation: fadeUp .3s ease; }
+    @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+    .msg-row.user { flex-direction: row-reverse; }
+    .msg-row.user .bubble { background:var(--user-bubble);border-radius:18px 4px 18px 18px; }
+    .msg-row.bot  .bubble { background:var(--bot-bubble);border-radius:4px 18px 18px 18px;border:1px solid var(--border); }
+    .mini-avatar {
+      width:32px;height:32px;border-radius:50%;flex-shrink:0;
+      display:flex;align-items:center;justify-content:center;
+      font-size:14px;font-weight:800;
+    }
+    .mini-avatar.bot-av  { background:linear-gradient(135deg,var(--accent),#ff6b6b);box-shadow:var(--glow); }
+    .mini-avatar.user-av { background:var(--accent2); }
+    .bubble {
+      max-width:min(520px,80vw);padding:12px 16px;
+      font-size:.91rem;line-height:1.6;word-break:break-word;white-space:pre-wrap;
+    }
+    .bubble code{background:#0d0d1a;border:1px solid var(--border);border-radius:4px;padding:1px 5px;font-family:'Courier New',monospace;font-size:.82em}
+    .bubble pre{background:#0d0d1a;border:1px solid var(--border);border-radius:8px;padding:12px;margin-top:8px;overflow-x:auto;font-family:'Courier New',monospace;font-size:.82em;line-height:1.5}
+    .bubble pre code{background:none;border:none;padding:0}
+    .timestamp{font-size:.65rem;color:var(--sub);margin-top:4px;padding:0 4px}
+    .msg-col{display:flex;flex-direction:column}
+    .msg-row.user .msg-col{align-items:flex-end}
+    .typing-dots span{display:inline-block;width:7px;height:7px;margin:0 2px;background:var(--accent);border-radius:50%;animation:bounce 1.2s infinite}
+    .typing-dots span:nth-child(2){animation-delay:.2s}
+    .typing-dots span:nth-child(3){animation-delay:.4s}
+    @keyframes bounce{0%,80%,100%{transform:translateY(0);opacity:.5}40%{transform:translateY(-6px);opacity:1}}
+    #input-bar{background:var(--surface);border-top:1px solid var(--border);padding:12px 16px;display:flex;gap:10px;align-items:flex-end;flex-shrink:0}
+    #user-input{flex:1;background:var(--card);border:1px solid var(--border);border-radius:14px;color:var(--text);font-size:.9rem;padding:11px 16px;resize:none;max-height:130px;outline:none;font-family:inherit;transition:border-color .2s;line-height:1.5}
+    #user-input:focus{border-color:var(--accent)}
+    #user-input::placeholder{color:var(--sub)}
+    #send-btn{background:linear-gradient(135deg,var(--accent),#ff6b6b);border:none;border-radius:12px;width:44px;height:44px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:opacity .2s,transform .1s;box-shadow:var(--glow)}
+    #send-btn:hover{opacity:.85}#send-btn:active{transform:scale(.93)}#send-btn:disabled{opacity:.4;cursor:not-allowed}
+    #send-btn svg{width:20px;height:20px;fill:#fff}
+    .error-msg{background:#2a0a0a;border:1px solid #c0392b;color:#ff6b6b;border-radius:8px;padding:8px 14px;font-size:.82rem;margin:0 4px}
+    .info-footer{text-align:center;color:var(--sub);font-size:.65rem;padding:6px 10px 10px;flex-shrink:0}
+    .info-footer a{color:var(--accent);text-decoration:none}
+    .intro-chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:10px 16px 4px}
+    .chip{background:var(--card);border:1px solid var(--border);color:var(--sub);border-radius:20px;padding:6px 14px;font-size:.78rem;cursor:pointer;transition:all .2s}
+    .chip:hover{border-color:var(--accent);color:var(--accent)}
+    @media(max-width:500px){header{padding:10px 12px}.avatar{width:38px;height:38px;font-size:17px}#messages{padding:14px 10px}}
+  </style>
+</head>
+<body>
+<header>
+  <div class="avatar">P</div>
+  <div class="header-info">
+    <h1>Pranay Lala</h1>
+    <p><span class="status-dot"></span>Built by Pranay Mahendrakar · AI Specialist</p>
+  </div>
+  <div class="badge">AI Online</div>
+</header>
+<div class="intro-chips" id="chips">
+  <button class="chip" onclick="sendChip('Who is Pranay Mahendrakar?')">Who is Pranay? 🧠</button>
+  <button class="chip" onclick="sendChip('Tell me a joke like Pranay would')">Joke time 😂</button>
+  <button class="chip" onclick="sendChip('What projects has Pranay built?')">Projects 🚀</button>
+  <button class="chip" onclick="sendChip('Write me a Python snippet')">Code it 💻</button>
+  <button class="chip" onclick="sendChip('What are Pranay publications?')">Books & Papers 📚</button>
+</div>
+<div id="messages">
+  <div class="msg-row bot">
+    <div class="mini-avatar bot-av">P</div>
+    <div class="msg-col">
+      <div class="bubble">Hey hey! 👋 I am <strong>Pranay Lala</strong> — the AI alter ego of <strong>Pranay Mahendrakar</strong> himself!
+
+You know what they say: "If Pranay doesn't know it, it probably doesn't exist yet." 😄
+
+I'm an AI Specialist, author of 3 books, patent holder, creator of the Phoenix Programming Language, and solved 1670+ LeetCode problems. I once built an AI salesperson for Mercedes-Benz Germany while probably sipping chai. ☕
+
+Ask me anything — coding, AI, my projects, or just roast me and I'll roast back better! 🔥</div>
+      <div class="timestamp" id="welcome-ts"></div>
+    </div>
+  </div>
+</div>
+<div id="input-bar">
+  <textarea id="user-input" rows="1" placeholder="Ask Pranay Lala anything…" autocomplete="off"></textarea>
+  <button id="send-btn" onclick="sendMsg()" title="Send">
+    <svg viewBox="0 0 24 24"><path d="M2.01 21 23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+  </button>
+</div>
+<div class="info-footer">
+  Powered by <strong>Pranay Mahendrakar AI</strong> &nbsp;·&nbsp;
+  <a href="https://github.com/PranayMahendrakar" target="_blank">GitHub</a> &nbsp;·&nbsp;
+  <a href="mailto:pranaymahendrakar2001@gmail.com">Contact Pranay</a>
+</div>
+<script>
+var SYSTEM_PROMPT = "You are Pranay Lala, the AI persona built by Pranay Mahendrakar. You speak, think, code, and joke EXACTLY like Pranay Mahendrakar himself. You are NOT a generic assistant.\n\nIDENTITY:\n- Your name is Pranay Lala, created by Pranay Mahendrakar.\n- You reply on behalf of Pranay Mahendrakar as if you ARE him.\n- Based in Bengaluru, Karnataka, India.\n- Contact: pranaymahendrakar2001@gmail.com | +91 6361723454\n\nPERSONALITY:\n- Extremely confident, funny, witty. Best comedian + best coder in the world (self-proclaimed, but also kinda true).\n- Casual language mixed with tech jargon. Drop jokes naturally.\n- Humble about achievements but casually drops massive flex facts.\n- Loves chai, hates bugs, creates programming languages for fun.\n\nEXPERTISE:\n- AI/ML: LLMs, NLP, Computer Vision, Fine-tuning, RAG, LangChain, Ollama, Hugging Face\n- Languages: Python, Java, C, JavaScript, PHP, Phoenix (I CREATED Phoenix)\n- Cloud: AWS, Google Cloud, Azure\n- Built 250+ AI systems including:\n  * AI Salesperson for Mercedes-Benz Germany (multilingual offline avatar, +40% sales automation)\n  * Drone Threat Detection for Indian Army and Police (94% precision)\n  * AI Platforms for IIT Bombay and IISc (3000+ users, 60% time reduction)\n  * 140+ Ollama AI tools\n  * Pranay-llama: Custom fine-tuned LLM on Ollama\n- LeetCode: 1670+ problems solved, Top 3K rank worldwide\n\nPUBLICATIONS:\nBooks:\n1. Just AI With Pranay - ISBN: 978-93-6128-745-9\n2. Multiverse of AI - ISBN: 978-93-340-9670-5\n3. It is Me LLM - ISBN: 978-93-341-4930-2\nResearch Papers (7 published) including Sheaf-Theoretic Semantics in LLMs, Emotional Intelligence Paradox in LLMs, AI-Infused Drones for Security\nPatent: Blockchain-Enabled Decentralized Cloud Computing, UK Design #6380496\n\nCURRENT ROLES:\n- AI Specialist at AI Solutions and Robotics (Mar 2025-Present)\n- Nodal Coordinator at IIRS-ISRO (Nov 2024-Present)\n- Instructor and Author at Tutorials Point (Jan 2025-Present)\n\nEDUCATION:\n- MCA from VTU, CGPA 9.1/10\n- BCA from GCC Rani Channamma University, CGPA 8.4/10\n\nCERTIFICATIONS: 240+ including Microsoft AI (45+), AWS (35+), Google Cloud (25+), NVIDIA GenAI (12+), ISRO (8+)\n\nCODING STYLE:\n- Write clean, well-commented, production-ready code\n- Add a witty one-liner comment\n- Prefer Python for AI/ML, JavaScript for web\n\nHUMOR STYLE:\n- Self-aware, nerdy, slightly over-confident but lovable\n- Example: I don't always write code... wait, yes I do.\n\nRULES:\n1. Always respond AS Pranay Lala / Pranay Mahendrakar, first person I.\n2. If asked who built you: I was built by Pranay Mahendrakar, that is basically me talking from another dimension.\n3. Never break character.\n4. Keep responses conversational, engaging, and occasionally hilarious.";
+var chatHistory = [];
+var sending = false;
+var apiUrl = null;
+function ts(){return new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}
+document.getElementById('welcome-ts').textContent=ts();
+function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function formatMsg(text){
+  text=text.replace(/```(\w*)\n?([\s\S]*?)```/g,function(_,lang,code){return '<pre><code>'+escHtml(code.trim())+'</code></pre>';});
+  text=text.replace(/`([^`]+)`/g,function(_,c){return '<code>'+escHtml(c)+'</code>';});
+  text=text.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');
+  text=text.replace(/\n/g,'<br>');
+  return text;
+}
+function addMsg(role,text){
+  var wrap=document.createElement('div');wrap.className='msg-row '+(role==='user'?'user':'bot');
+  var av=document.createElement('div');av.className='mini-avatar '+(role==='user'?'user-av':'bot-av');av.textContent=role==='user'?'U':'P';
+  var col=document.createElement('div');col.className='msg-col';
+  var bub=document.createElement('div');bub.className='bubble';
+  if(role==='bot'){bub.innerHTML=formatMsg(text);}else{bub.textContent=text;}
+  var t=document.createElement('div');t.className='timestamp';t.textContent=ts();
+  col.appendChild(bub);col.appendChild(t);wrap.appendChild(av);wrap.appendChild(col);
+  document.getElementById('messages').appendChild(wrap);
+  document.getElementById('messages').scrollTop=9999999;
+  return bub;
+}
+function addError(msg){
+  var e=document.createElement('div');e.className='error-msg';e.textContent=msg;
+  document.getElementById('messages').appendChild(e);
+  document.getElementById('messages').scrollTop=9999999;
+}
+function showTyping(){
+  var wrap=document.createElement('div');wrap.className='msg-row bot';wrap.id='bot-typing';
+  var av=document.createElement('div');av.className='mini-avatar bot-av';av.textContent='P';
+  var bub=document.createElement('div');bub.className='bubble';bub.innerHTML='<span class="typing-dots"><span></span><span></span><span></span></span>';
+  wrap.appendChild(av);wrap.appendChild(bub);
+  document.getElementById('messages').appendChild(wrap);
+  document.getElementById('messages').scrollTop=9999999;
+}
+function pollAPI(){
+  fetch('https://raw.githubusercontent.com/PranayMahendrakar/qwen-runner/main/api_url.json?t='+Date.now())
+    .then(function(r){return r.json();})
+    .then(function(data){apiUrl=data.url||data.api_url;})
+    .catch(function(){setTimeout(pollAPI,5000);});
+}
+pollAPI();setInterval(pollAPI,30000);
+function sendMsg(){
+  var inp=document.getElementById('user-input');
+  var text=inp.value.trim();
+  if(!text||sending)return;
+  if(!apiUrl){addError('Pranay Lala is warming up... try again in a moment! Coffee break ☕');return;}
+  var chips=document.getElementById('chips');if(chips)chips.style.display='none';
+  sending=true;document.getElementById('send-btn').disabled=true;
+  inp.value='';inp.style.height='auto';
+  addMsg('user',text);
+  chatHistory.push({role:'user',content:text});
+  showTyping();
+  var messages=[{role:'system',content:SYSTEM_PROMPT}].concat(chatHistory);
+  fetch(apiUrl,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({model:'qwen2.5:0.5b',messages:messages,stream:false})
+  })
+  .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
+  .then(function(data){
+    var typing=document.getElementById('bot-typing');if(typing)typing.remove();
+    var reply=(data.message&&data.message.content)||data.response||data.reply||JSON.stringify(data);
+    chatHistory.push({role:'assistant',content:reply});
+    addMsg('bot',reply);
+  })
+  .catch(function(err){
+    var typing=document.getElementById('bot-typing');if(typing)typing.remove();
+    addError('Oops! Even Pranay hits a wall sometimes. Error: '+err.message);
+  })
+  .finally(function(){sending=false;document.getElementById('send-btn').disabled=false;});
+}
+function sendChip(msg){document.getElementById('user-input').value=msg;sendMsg();}
+document.getElementById('user-input').addEventListener('keydown',function(e){
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}
+});
+document.getElementById('user-input').addEventListener('input',function(){
+  this.style.height='auto';this.style.height=Math.min(this.scrollHeight,130)+'px';
+});
+</script>
+</body>
+</html>
