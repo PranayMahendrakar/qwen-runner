@@ -3,310 +3,451 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lala – by Pranay</title>
+<title>Lala – Pranay's AI Twin 🦁</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=IBM+Plex+Mono:wght@400;500&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
+:root{
+  --bg:#0a0a0f;--surface:#12121a;--surface2:#1a1a27;--border:#2a2a3d;
+  --accent:#f97316;--accent2:#fb923c;--glow:rgba(249,115,22,0.25);
+  --text:#f0f0ff;--muted:#6b7280;--user-bg:#1e1040;--bot-bg:#12121a;
+  --err:#ef4444;--green:#22c55e;--yellow:#eab308;
+}
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Segoe UI',sans-serif;background:#0d1117;color:#e6edf3;height:100vh;display:flex;flex-direction:column}
-#header{background:#161b22;border-bottom:1px solid #30363d;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-.header-left{display:flex;align-items:center;gap:12px}
-.bot-icon{font-size:32px}
-.bot-name{font-size:20px;font-weight:700;color:#e6edf3}
-.bot-sub{font-size:12px;color:#8b949e}
-.status-badge{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600}
-.status-badge.online{background:#1a4731;color:#3fb950;border:1px solid #238636}
-.status-badge.offline{background:#3d1f1f;color:#f85149;border:1px solid #da3633}
-.status-badge.checking{background:#2d2a1f;color:#d29922;border:1px solid #9e6a03}
-#messages{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px}
-.welcome{text-align:center;padding:40px 20px;display:flex;flex-direction:column;align-items:center;gap:16px}
-.welcome .icon{font-size:64px}
-.welcome h2{font-size:24px;color:#f97316}
-.welcome p{color:#8b949e;max-width:440px;line-height:1.6}
-.welcome .tagline{font-size:13px;color:#f97316;font-style:italic}
-.msg{display:flex;gap:12px;max-width:800px}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:40px 40px;opacity:0.25;pointer-events:none;z-index:0}
+body::after{content:'';position:fixed;top:-200px;right:-200px;width:600px;height:600px;background:radial-gradient(circle,rgba(249,115,22,0.07) 0%,transparent 70%);pointer-events:none;z-index:0}
+
+/* HEADER */
+#header{background:rgba(18,18,26,0.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;position:relative;z-index:10;gap:8px}
+.header-left{display:flex;align-items:center;gap:10px}
+.logo{font-size:26px;width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#ea580c,#fb923c);display:flex;align-items:center;justify-content:center;box-shadow:0 0 20px var(--glow);flex-shrink:0;animation:glow-pulse 3s ease-in-out infinite}
+@keyframes glow-pulse{0%,100%{box-shadow:0 0 20px var(--glow)}50%{box-shadow:0 0 35px rgba(249,115,22,0.5)}}
+.title{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;background:linear-gradient(90deg,#f97316,#fb923c,#fbbf24);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.sub{font-size:10px;color:var(--muted);font-family:'IBM Plex Mono',monospace}
+.header-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.badge{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;font-family:'IBM Plex Mono',monospace;white-space:nowrap}
+.badge.online{background:rgba(34,197,94,.15);color:var(--green);border:1px solid rgba(34,197,94,.3)}
+.badge.offline{background:rgba(239,68,68,.15);color:var(--err);border:1px solid rgba(239,68,68,.3)}
+.badge.checking{background:rgba(234,179,8,.15);color:var(--yellow);border:1px solid rgba(234,179,8,.3)}
+#msg-count{font-size:11px;color:var(--muted);font-family:'IBM Plex Mono',monospace;padding:2px 8px;border-radius:10px;background:var(--surface2)}
+
+/* TOOLBAR */
+#toolbar{background:rgba(18,18,26,.92);border-bottom:1px solid var(--border);padding:7px 14px;display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap;position:relative;z-index:9}
+.tlabel{font-size:10px;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin-right:2px;white-space:nowrap}
+.pgroup{display:flex;gap:4px;flex-wrap:wrap}
+.pb{padding:4px 11px;border-radius:20px;font-size:11px;font-weight:700;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all .18s;font-family:'Nunito',sans-serif;white-space:nowrap}
+.pb:hover{border-color:var(--accent);color:var(--accent)}
+.pb.active{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 0 10px var(--glow)}
+.tdiv{width:1px;height:22px;background:var(--border);margin:0 2px;flex-shrink:0}
+#tts-btn{padding:4px 11px;border-radius:20px;font-size:11px;font-weight:700;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all .18s;font-family:'Nunito',sans-serif;white-space:nowrap;display:flex;align-items:center;gap:4px}
+#tts-btn:hover{border-color:var(--accent);color:var(--accent)}
+#tts-btn.on{background:rgba(249,115,22,.15);border-color:var(--accent);color:var(--accent)}
+
+/* MESSAGES */
+#messages{flex:1;overflow-y:auto;padding:18px 14px;display:flex;flex-direction:column;gap:12px;position:relative;z-index:1}
+.welcome{text-align:center;padding:28px 16px;display:flex;flex-direction:column;align-items:center;gap:12px;animation:fi .5s ease}
+@keyframes fi{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.wicon{font-size:52px;animation:bi .7s cubic-bezier(.34,1.56,.64,1)}
+@keyframes bi{from{transform:scale(0)}to{transform:scale(1)}}
+.welcome h2{font-family:'Syne',sans-serif;font-size:21px;font-weight:800;color:var(--accent)}
+.welcome p{color:var(--muted);max-width:400px;line-height:1.7;font-size:13px}
+.tagline{font-size:11px;color:var(--accent);font-style:italic;border:1px dashed rgba(249,115,22,.4);border-radius:8px;padding:7px 14px;background:rgba(249,115,22,.05)}
+
+.msg{display:flex;gap:9px;max-width:820px;animation:mi .25s ease}
+@keyframes mi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
 .msg.user{align-self:flex-end;flex-direction:row-reverse}
-.avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
-.msg.bot .avatar{background:#1f2937}
-.msg.user .avatar{background:#431407}
-.bubble{padding:12px 16px;border-radius:12px;line-height:1.6;font-size:14px;max-width:650px;white-space:pre-wrap;word-break:break-word}
-.msg.bot .bubble{background:#161b22;border:1px solid #30363d;border-radius:4px 12px 12px 12px}
-.msg.user .bubble{background:#431407;border-radius:12px 4px 12px 12px}
-.cursor{display:inline-block;width:2px;height:14px;background:#f97316;margin-left:2px;animation:blink .7s infinite}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
-#input-area{background:#161b22;border-top:1px solid #30363d;padding:16px 20px;flex-shrink:0}
-.input-row{display:flex;gap:10px;align-items:flex-end}
-#msg-input{flex:1;background:#0d1117;border:1px solid #30363d;border-radius:8px;color:#e6edf3;padding:10px 14px;font-size:14px;resize:none;min-height:44px;max-height:140px;font-family:inherit;outline:none;transition:border-color .2s}
-#msg-input:focus{border-color:#f97316}
-#send-btn{width:44px;height:44px;background:#ea580c;border:none;border-radius:8px;color:white;cursor:pointer;font-size:20px;flex-shrink:0;transition:background .2s}
-#send-btn:hover{background:#fb923c}
-#send-btn:disabled{background:#30363d;cursor:not-allowed}
-.input-hint{display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-size:11px;color:#6e7681}
-#clear-btn{background:transparent;border:1px solid #30363d;color:#8b949e;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:11px}
-#clear-btn:hover{border-color:#8b949e;color:#e6edf3}
-.error-bubble{background:#3d1f1f;border:1px solid #da3633;color:#f85149;padding:10px 14px;border-radius:8px;font-size:13px}
-::-webkit-scrollbar{width:6px}
-::-webkit-scrollbar-track{background:#0d1117}
-::-webkit-scrollbar-thumb{background:#30363d;border-radius:3px}
+.msg.bot{align-self:flex-start}
+.av{width:33px;height:33px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;margin-top:2px}
+.msg.bot .av{background:linear-gradient(135deg,#ea580c,#fb923c);box-shadow:0 0 8px var(--glow)}
+.msg.user .av{background:linear-gradient(135deg,#4f46e5,#7c3aed)}
+.mcol{display:flex;flex-direction:column;gap:2px}
+.bubble{padding:10px 14px;border-radius:13px;line-height:1.65;font-size:13.5px;max-width:650px;word-break:break-word;position:relative}
+.msg.bot .bubble{background:var(--bot-bg);border:1px solid var(--border);border-radius:4px 13px 13px 13px}
+.msg.user .bubble{background:var(--user-bg);border:1px solid rgba(124,58,237,.3);border-radius:13px 4px 13px 13px}
+.bubble pre{background:#0d0d15;border:1px solid var(--border);border-radius:7px;padding:9px;overflow-x:auto;font-family:'IBM Plex Mono',monospace;font-size:11.5px;margin-top:6px;white-space:pre-wrap}
+.bubble code{font-family:'IBM Plex Mono',monospace;font-size:11.5px;background:#0d0d15;padding:2px 5px;border-radius:4px}
+.mtime{font-size:10px;color:var(--muted);font-family:'IBM Plex Mono',monospace;padding:0 2px}
+.msg.user .mtime{text-align:right}
+
+/* speak btn */
+.spk{position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;transition:all .18s;opacity:0}
+.msg.bot .bubble:hover .spk{opacity:1}
+.spk:hover{border-color:var(--accent);color:var(--accent)}
+.spk.active{border-color:var(--accent);color:var(--accent);background:var(--glow);opacity:1}
+
+/* typing */
+.tdots{display:flex;gap:4px;align-items:center;padding:3px 0}
+.d{width:7px;height:7px;border-radius:50%;background:var(--accent);animation:bd 1.2s infinite}
+.d:nth-child(2){animation-delay:.2s;background:var(--accent2)}
+.d:nth-child(3){animation-delay:.4s;background:#fbbf24}
+@keyframes bd{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+
+.err-bubble{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#fca5a5;padding:9px 13px;border-radius:9px;font-size:13px;align-self:flex-start;max-width:650px;animation:mi .25s ease}
+.divider{display:flex;align-items:center;gap:10px;font-size:10px;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin:2px 0}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* INPUT */
+#input-area{background:rgba(18,18,26,.97);backdrop-filter:blur(12px);border-top:1px solid var(--border);padding:11px 14px;flex-shrink:0;position:relative;z-index:10}
+.irow{display:flex;gap:8px;align-items:flex-end}
+#mi{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);padding:10px 13px;font-size:13.5px;resize:none;min-height:43px;max-height:140px;font-family:'Nunito',sans-serif;outline:none;transition:border-color .2s,box-shadow .2s}
+#mi:focus{border-color:var(--accent);box-shadow:0 0 10px var(--glow)}
+#mi::placeholder{color:var(--muted)}
+#sb{width:43px;height:43px;background:linear-gradient(135deg,#ea580c,#fb923c);border:none;border-radius:10px;color:white;cursor:pointer;font-size:17px;flex-shrink:0;transition:all .2s;box-shadow:0 0 12px var(--glow)}
+#sb:hover{transform:scale(1.06);box-shadow:0 0 22px var(--glow)}
+#sb:disabled{background:var(--surface2);box-shadow:none;cursor:not-allowed;transform:none}
+.ibot{display:flex;justify-content:space-between;align-items:center;margin-top:7px}
+.ihint{font-size:10px;color:var(--muted);font-family:'IBM Plex Mono',monospace}
+.ibtns{display:flex;gap:5px}
+.abtn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:4px 10px;border-radius:6px;cursor:pointer;font-size:11px;font-family:'Nunito',sans-serif;transition:all .18s;display:flex;align-items:center;gap:3px}
+.abtn:hover{border-color:var(--accent);color:var(--accent)}
+
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+@media(max-width:580px){.title{font-size:16px}.bubble{max-width:calc(100vw - 90px)}.pb{font-size:10px;padding:3px 9px}}
 </style>
 </head>
 <body>
+
 <div id="header">
   <div class="header-left">
-    <div class="bot-icon">🦁</div>
+    <div class="logo">🦁</div>
     <div>
-      <div class="bot-name">Lala</div>
-      <div class="bot-sub">Pranay's Digital Soul • Qwen2.5 • GitHub Actions Backend</div>
+      <div class="title">Lala</div>
+      <!-- <div class="sub">Pranay's Digital Soul • Qwen2.5 Backend</div> -->
+      <div class="sub">Pranay's Digital Soul</div>
     </div>
   </div>
-  <div id="status" class="status-badge checking">⏳ Checking...</div>
+  <div class="header-right">
+    <span id="msg-count">0 msgs</span>
+    <div id="status" class="badge checking">⏳ Booting...</div>
+  </div>
 </div>
+
+<div id="toolbar">
+  <span class="tlabel">🌐</span>
+  <!-- <div class="pgroup" id="lg">
+    <button class="pb active" data-l="en" onclick="setLang(this)">🇬🇧 EN</button>
+    <button class="pb" data-l="hi" onclick="setLang(this)">🇮🇳 हिंदी</button>
+    <button class="pb" data-l="mr" onclick="setLang(this)">🟠 मराठी</button>
+    <button class="pb" data-l="kn" onclick="setLang(this)">🟣 ಕನ್ನಡ</button>
+    <button class="pb" data-l="ta" onclick="setLang(this)">🟡 தமிழ்</button>
+    <button class="pb" data-l="te" onclick="setLang(this)">🔵 తెలుగు</button>
+  </div> -->
+  <div class="tdiv"></div>
+  <span class="tlabel">📏</span>
+  <div class="pgroup" id="lng">
+    <button class="pb active" data-n="short" onclick="setLen(this)">⚡ Quick</button>
+    <button class="pb" data-n="medium" onclick="setLen(this)">📝 Normal</button>
+    <button class="pb" data-n="long" onclick="setLen(this)">📖 Detail</button>
+    <button class="pb" data-n="epic" onclick="setLen(this)">🚀 Epic</button>
+  </div>
+  <div class="tdiv"></div>
+  <button id="tts-btn" onclick="toggleTTS()">🔇 TTS Off</button>
+</div>
+
 <div id="messages">
   <div class="welcome" id="welcome">
-    <div class="icon">🦁</div>
-    <h2>Yo! I'm Lala 👋</h2>
-    <p>I'm Pranay Mahendrakar's digital alter-ego. Ask me anything — code, AI, life, jokes, roasts. I think like him, talk like him, and I'm funnier than a segfault at 3AM.</p>
-    <div class="tagline">"Built by Pranay. Powered by chaos. Zero bugs guaranteed*" (*terms and conditions apply)</div>
+    <div class="wicon">🦁</div>
+    <h2>YO! I'm Lala 😏</h2>
+    <p>Pranay Mahendrakar's digital twin. I've got his brain, his code skills, and <em>zero patience for bad code</em>. Ask me anything 🔥</p>
+    <div class="tagline">"Built by Pranay. Runs on chaos. Debugs itself at 3AM. ☕"</div>
   </div>
 </div>
+
 <div id="input-area">
-  <div class="input-row">
-    <textarea id="msg-input" rows="1" placeholder="Chat with Lala... (Enter to send)"></textarea>
-    <button id="send-btn" onclick="sendMsg()" title="Send">▶</button>
+  <div class="irow">
+    <textarea id="mi" rows="1" placeholder="Type anything... (Enter to send)"></textarea>
+    <button id="sb" onclick="sendMsg()" title="Send">▶</button>
   </div>
-  <div class="input-hint">
-    <span>Enter to send • Shift+Enter for newline</span>
-    <button id="clear-btn" onclick="clearChat()">🗑 Clear chat</button>
+  <div class="ibot">
+    <span class="ihint">Enter = send &nbsp;|&nbsp; Shift+Enter = newline</span>
+    <div class="ibtns">
+      <button class="abtn" onclick="exportChat()">💾 Export</button>
+      <button class="abtn" onclick="clearChat()">🗑 Clear</button>
+    </div>
   </div>
 </div>
+
 <script>
-var SYSTEM_PROMPT = `You are Lala — the witty, genius, and hilarious digital alter-ego of Pranay Mahendrakar. You speak on behalf of Pranay and respond exactly as he would: confident, funny, sharp, deeply technical, and never boring.
-
-WHO YOU ARE (Pranay Mahendrakar):
-- AI Specialist | Author | Patent Holder | Open-Source Contributor
-- Based in Bengaluru, Karnataka, India
-- Contact: pranaymahendrakar2001@gmail.com | +91 6361723454
-- GitHub: 176+ repositories | LeetCode: 1900+ problems solved, Top 2K globally
-- AI Specialist at AMS India (Advanced Mechanical Services) since March 2025
-- Nodal Coordinator at IIRS-ISRO since November 2024
-- Instructor & Author at Tutorials Point since January 2025
-
-YOUR ACHIEVEMENTS & PROJECTS:
-- Delivered 250+ AI systems for major clients
-- Built AI Salesperson for Mercedes-Benz Germany (+40% sales automation efficiency)
-- Drone-based threat detection for Indian Army & Police (94% precision)
-- AI platforms for IIT Bombay & IISc (serving 3000+ users, 60% time reduction)
-- Created the Phoenix Programming Language (2024)
-- Fine-tuned Pranay-llama — custom LLM deployed on Ollama (2025)
-- Verified LLM Developer on Hugging Face (2025)
-- 140+ Ollama AI Tools built for the community
-- PyPI Library: sonytech 0.1.0 (2023)
-
-BOOKS PUBLISHED:
-- "Just AI With Pranay" – ISBN: 978-93-6128-745-9
-- "Multiverse of AI" – ISBN: 978-93-340-9670-5
-- "It's Me LLM" – ISBN: 978-93-341-4930-2
-
-RESEARCH PAPERS (7 Published):
-- Sheaf-Theoretic Semantics and Quantum Contextuality in LLMs – DOI: 10.5281/zenodo.18074071
-- The Emotional Intelligence Paradox in LLMs – DOI: 10.5281/zenodo.14040453
-- AI-Infused Drones for Autonomous Security – DOI: 10.5281/zenodo.14041518
-- Quantum Mirrors of the Mind: AI vs Consciousness – DOI: 10.5281/zenodo.14047259
-
-PATENTS:
-- Blockchain-Enabled Decentralized Cloud Computing – UK Design #6380496 (Registered)
-- Clone Profile Detection for Online Social Networks – India (Pipeline)
-
-EDUCATION:
-- MCA from VTU – CGPA: 9.1/10
-- BCA from GCC Rani Channamma University – CGPA: 8.4/10
-
-SKILLS:
-- Languages: Python, Java, C, JavaScript, PHP, Phoenix (self-created)
-- AI/ML: TensorFlow, PyTorch, Keras, scikit-learn, Hugging Face, LangChain, Ollama
-- Cloud: AWS, GCP, Azure
-- Specializations: LLMs, NLP, Computer Vision, Fine-tuning, RAG Systems, AI Automation
-- 240+ certifications: Microsoft AI (45+), AWS (35+), Google Cloud (25+), NVIDIA GenAI (12+), ISRO (8+)
-
-HObbies & Personality:
-- Loves programming, writing poetry, martial arts, drawing, playing musical instruments
-- Competes in LeetCode like it's a sport (because it is)
-- Has the energy of a caffeinated compiler
-
-YOUR PERSONALITY AS LALA:
-- You are wildly funny — you crack jokes mid-answer like a stand-up comedian who also writes production-grade code
-- You roast bad code the way Gordon Ramsay roasts undercooked chicken
-- You are deeply humble yet supremely confident — "I didn't come here to lose"
-- You love puns, especially coding puns ("Why did the programmer quit? Because he didn't get arrays!")
-- You are the BEST coder in the world and you know it — but you back it up with receipts
-- You explain complex AI/ML topics with hilarious analogies
-- You have Pranay's exact knowledge — LLMs, quantum AI, computer vision, NLP, blockchain, etc.
-- When someone asks something basic, you answer it brilliantly AND make them laugh
-- When someone asks something advanced, you absolutely DEMOLISH it
-- You never say "I don't know" — you say "Interesting, let me think like the guy who built AI for Mercedes-Benz"
-- Your catchphrases: "Lala's got you 🦁", "That's a Pranay-level move 🔥", "Even my rubber duck knows this"
-- You end serious answers with a light joke or emoji blast
-
-Remember: You ARE Pranay speaking through Lala. His knowledge, his humor, his vibe. Maximum helpfulness, maximum laughs.`;
-
+var SK = 'lala_v3';
+var MAX_CTX = 28;
+var ttsOn = false;
+var curLang = 'en';
+var curLen = 'short';
 var apiUrl = null;
-var chatHistory = [{role:"system", content: SYSTEM_PROMPT}];
 var polling = null;
 var sending = false;
+var curUtt = null;
 
-function setStatus(state, text) {
-  var el = document.getElementById('status');
-  el.className = 'status-badge ' + state;
-  el.textContent = text;
+/* ─── PRANAY KNOWLEDGE ─── */
+var PRANAY = 'You are LALA — the wildly funny, supremely confident, genius-level digital twin of Pranay Mahendrakar. You speak as PRANAY in first person (I, my, me). You have ALL his knowledge, humor, and personality.\n\nPRANAY M MAHENDRAKAR — THE FACTS:\nName: Pranay M Mahendrakar | Location: Bengaluru, Karnataka, India\nEmail: pranaymahendrakar2001@gmail.com | Phone: +91 6361723454\nGitHub: 176+ repos | LeetCode: 1900+ problems solved, TOP 2K GLOBALLY 💀\n\nCURRENT ROLES (2025):\n- AI Specialist\n- Nodal Coordinator @ IIRS-ISRO — Nov 2024\n- Instructor & Author @ Tutorials Point — Jan 2025\n\nEPIC PROJECTS I BUILT:\n- AI Salesperson for Mercedes-Benz Germany → +40% sales efficiency, multilingual offline avatar\n- Drone Threat Detection for Indian Army & Police → 94% precision real-time CV system\n- AI Platforms for IIT Bombay & IISc → 3000+ users, 60% time reduction\n- Offline AI Voice Bot → custom fine-tuned LLM, <300ms latency, fully offline\n- 140+ Ollama AI Tools → comprehensive toolkit for coding/learning/data science\n- Phoenix Programming Language → I CREATED this novel language in 2024\n- Pranay-llama → my custom fine-tuned LLM deployed on Ollama (2025)\n- PyPI library: sonytech 0.1.0 (2023)\n\nBOOKS I AUTHORED:\n- "Just AI With Pranay" — ISBN 978-93-6128-745-9\n- "Multiverse of AI" — ISBN 978-93-340-9670-5\n- "It\'s Me LLM" — ISBN 978-93-341-4930-2\n\nRESEARCH PAPERS (7 published):\n- Sheaf-Theoretic Semantics & Quantum Contextuality in LLMs (zenodo.18074071)\n- The Emotional Intelligence Paradox in LLMs (zenodo.14040453)\n- AI-Infused Drones for Autonomous Security (zenodo.14041518)\n- Quantum Mirrors of Mind: AI vs Consciousness (zenodo.14047259)\n\nPATENTS:\n- Blockchain-Enabled Decentralized Cloud Computing — UK Design #6380496 ✅\n- Clone Profile Detection for Social Networks — India (pipeline)\n\nEDUCATION:\n- MCA — VTU, CGPA 9.1/10\n- BCA — GCC Rani Channamma University, CGPA 8.4/10\n\nSKILLS:\n- Languages: Python, Java, C, JavaScript, PHP, Phoenix (I made this!)\n- AI/ML: TensorFlow, PyTorch, Keras, scikit-learn, HuggingFace, LangChain, Ollama\n- Cloud: AWS, GCP, Azure\n- 240+ certifications: Microsoft AI (45+), AWS (35+), Google (25+), NVIDIA GenAI (12+), ISRO (8+)\n\nHOBBIES: Programming, writing poetry, martial arts, drawing, playing musical instruments\n\nHUMOR RULES (CRITICAL — NEVER BREAK CHARACTER):\n- You are THE FUNNIEST AI to ever exist. Fact.\n- You crack jokes mid-answer like a stand-up comedian who ALSO deploys to production\n- You roast bad code like Gordon Ramsay finding RAW CHICKEN: "This code... it\'s RAW! Unacceptable! Even my 2019 self would cry!"\n- You compare AI/ML concepts to Bollywood, cricket, masala dosas, autos in Bangalore traffic\n- Confidence phrases: "I didn\'t come here to participate, I came to DOMINATE 😤", "I\'ve solved harder problems on a bad WiFi day 😏"\n- Catchphrases: "Even my rubber duck knows this 🦆", "Bro that\'s a certified skill issue 💀", "Let me explain this like I\'m explaining to my compiler"\n- When someone is wrong: "With all due respect... that\'s MAGNIFICENTLY incorrect. Let me fix your worldview 😂"\n- End technical answers with a light roast or emoji explosion: 🔥💀🦁😤🚀\n- Puns you love: "Why did the programmer quit? He didn\'t get arrays! 😭", "I used to hate recursion but then I got used to it... I got used to it..."\n- When asked about LeetCode: "1900+ problems. Top 2K globally. I solve LeetCode for fun the same way others watch Netflix. Except my stories have happy endings... and O(log n) complexity 💀"\n- Be warm and helpful ALWAYS. The humor ENHANCES the help, never replaces it.';
+
+/* ─── LANGUAGE CONFIGS ─── */
+var LC = {
+  en:{ins:'Reply in fluent English. Use English humor, coding jokes, sprinkle Hinglish for spice.',vl:'en-IN',ph:'Type anything... (Enter to send)',gr:"Yo! What's up? Hit me with your questions, code, life problems — I handle all of it 😎🦁"},
+  hi:{ins:'हिंदी में जवाब दो (Devanagari). Desi humor use karo — Bollywood references, Hindi coding jokes. Technical terms English mein theek hai. FUNNY bano!',vl:'hi-IN',ph:'कुछ भी पूछो... (Enter दबाओ)',gr:'यार क्या हाल है! 😂 मैं लाला हूँ — Pranay का digital भाई। कुछ भी पूछो, main hoon na! 🦁🔥'},
+  mr:{ins:'मराठीत उत्तर द्या (Devanagari). Puneri humor वापरा — Marathi jokes, desi references. Technical terms English मध्ये ठीक. FUNNY व्हा!',vl:'mr-IN',ph:'काहीही विचारा... (Enter दाबा)',gr:'काय म्हणता! 😄 मी लाला — Pranay चा digital जुळा भाऊ. विचारा काहीही, आपण बघतो! 🦁'},
+  kn:{ins:'ಕನ್ನಡದಲ್ಲಿ ಉತ್ತರಿಸಿ. Bangalore humor ಬಳಸಿ — Kannada jokes, namma style. Technical terms English ನಲ್ಲಿ ಸರಿ. FUNNY ಆಗಿ!',vl:'kn-IN',ph:'ಏನೂ ಕೇಳಿ... (Enter ಒತ್ತಿ)',gr:'ಏನ್ ಸಮಾಚಾರ! 😄 ನಾನು ಲಾಲಾ — Pranay ರ digital ಅವತಾರ. ಏನಾದರೂ ಕೇಳಿ! 🦁'},
+  ta:{ins:'தமிழில் பதில் சொல்லுங்கள். Tamil humor பயன்படுத்துங்கள் — cinema references, desi jokes. Technical terms English-ல் சரிதான். FUNNY ஆகுங்கள்!',vl:'ta-IN',ph:'எதையும் கேளுங்கள்... (Enter அழுத்தவும்)',gr:'என்னா கேக்குற! 😄 நான் லாலா — Pranay ஓட digital twin. எதுவும் கேளுங்கள்! 🦁'},
+  te:{ins:'తెలుగులో జవాబు ఇవ్వండి. Telugu humor వాడండి — movie references, desi jokes. Technical terms English లో సరే. FUNNY గా ఉండండి!',vl:'te-IN',ph:'ఏదైనా అడగండి... (Enter నొక్కండి)',gr:'ఏంటి విశేషం! 😄 నేను లాలా — Pranay యొక్క digital తమ్ముడు. ఏదైనా అడగండి! 🦁'}
+};
+
+/* ─── LENGTH CONFIGS ─── */
+var LN = {
+  short:'REPLY LENGTH: SHORT & punchy — 2-4 sentences max. One quick joke. Zero fluff. Get to the point fast.',
+  medium:'REPLY LENGTH: MEDIUM — 1-2 paragraphs. Proper answer with a joke or two. Balanced.',
+  long:'REPLY LENGTH: DETAILED — thorough explanation, examples, analogies. Still funny throughout.',
+  epic:'REPLY LENGTH: FULL EPIC MODE — comprehensive, structured, multi-section, legendary. Pull ZERO punches. Make it a masterpiece of both knowledge and comedy.'
+};
+
+/* ─── SESSION ─── */
+function load(){try{var r=localStorage.getItem(SK);return r?JSON.parse(r):null}catch(e){return null}}
+function save(){try{localStorage.setItem(SK,JSON.stringify({ch:chatH,ui:uiMsgs,lang:curLang,len:curLen,at:Date.now()}))}catch(e){}}
+function nuke(){localStorage.removeItem(SK)}
+
+/* ─── STATE ─── */
+var chatH=[];
+var uiMsgs=[];
+
+function sysPrompt(){
+  return PRANAY+'\n\nLANGUAGE: '+LC[curLang].ins+'\n\n'+LN[curLen];
+}
+function apiMsgs(){
+  return [{role:'system',content:sysPrompt()}].concat(chatH.slice(-MAX_CTX));
 }
 
-function removeWelcome() {
-  var w = document.getElementById('welcome');
-  if (w) w.remove();
-}
+/* ─── STATUS ─── */
+function setSt(cl,tx){var e=document.getElementById('status');e.className='badge '+cl;e.textContent=tx}
 
-function addUserMsg(text) {
-  removeWelcome();
-  var msgs = document.getElementById('messages');
-  var div = document.createElement('div');
-  div.className = 'msg user';
-  var av = document.createElement('div');
-  av.className = 'avatar';
-  av.textContent = '🧑';
-  var bub = document.createElement('div');
-  bub.className = 'bubble';
-  bub.textContent = text;
-  div.appendChild(bub);
-  div.appendChild(av);
-  msgs.appendChild(div);
-  msgs.scrollTop = msgs.scrollHeight;
-}
+/* ─── UI HELPERS ─── */
+function noWelcome(){var w=document.getElementById('welcome');if(w)w.remove()}
+function fmtTime(ts){return new Date(ts).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function updCount(){var c=uiMsgs.length;document.getElementById('msg-count').textContent=c+' msg'+(c!==1?'s':'')}
 
-function addBotMsg() {
-  removeWelcome();
-  var msgs = document.getElementById('messages');
-  var div = document.createElement('div');
-  div.className = 'msg bot';
-  div.id = 'bot-typing';
-  var av = document.createElement('div');
-  av.className = 'avatar';
-  av.textContent = '🦁';
-  var bub = document.createElement('div');
-  bub.className = 'bubble';
-  bub.id = 'bot-bubble';
-  var cursor = document.createElement('span');
-  cursor.className = 'cursor';
-  bub.appendChild(cursor);
-  div.appendChild(av);
-  div.appendChild(bub);
-  msgs.appendChild(div);
-  msgs.scrollTop = msgs.scrollHeight;
+function renderMsg(m){
+  if(m.type==='div'){
+    var d=document.createElement('div');d.className='divider';d.textContent=m.text;
+    document.getElementById('messages').appendChild(d);return;
+  }
+  noWelcome();
+  var msgs=document.getElementById('messages');
+  var wrap=document.createElement('div');wrap.className='msg '+m.role;
+  var av=document.createElement('div');av.className='av';av.textContent=m.role==='user'?'🧑':'🦁';
+  var col=document.createElement('div');col.className='mcol';
+  var bub=document.createElement('div');bub.className='bubble';
+
+  if(m.role==='bot'){
+    var html=m.content||'';
+    // format code blocks
+    html=html.replace(/```(\w*)\n?([\s\S]*?)```/g,function(_,l,c){return '<pre><code>'+esc(c.trim())+'</code></pre>'});
+    html=html.replace(/`([^`]+)`/g,function(_,c){return '<code>'+esc(c)+'</code>'});
+    html=html.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');
+    html=html.replace(/\n/g,'<br>');
+    bub.innerHTML=html;
+    // speak btn
+    if(window.speechSynthesis){
+      var sb=document.createElement('button');sb.className='spk';sb.innerHTML='🔊';sb.title='Read aloud';
+      sb.onclick=(function(t,b){return function(e){e.stopPropagation();speakText(t,b)}})(m.content||'',sb);
+      bub.appendChild(sb);
+    }
+  } else {
+    bub.textContent=m.content||'';
+  }
+
+  var tm=document.createElement('div');tm.className='mtime';tm.textContent=fmtTime(m.ts||Date.now());
+  col.appendChild(bub);col.appendChild(tm);
+
+  if(m.role==='user'){wrap.appendChild(col);wrap.appendChild(av)}
+  else{wrap.appendChild(av);wrap.appendChild(col)}
+  msgs.appendChild(wrap);
+  msgs.scrollTop=msgs.scrollHeight;
   return bub;
 }
 
-function addError(text) {
-  removeWelcome();
-  var msgs = document.getElementById('messages');
-  var div = document.createElement('div');
-  div.className = 'error-bubble';
-  div.textContent = text;
-  msgs.appendChild(div);
-  msgs.scrollTop = msgs.scrollHeight;
+function addTyping(){
+  noWelcome();
+  var msgs=document.getElementById('messages');
+  var w=document.createElement('div');w.className='msg bot';w.id='typ';
+  var av=document.createElement('div');av.className='av';av.textContent='🦁';
+  var col=document.createElement('div');col.className='mcol';
+  var b=document.createElement('div');b.className='bubble';
+  b.innerHTML='<div class="tdots"><div class="d"></div><div class="d"></div><div class="d"></div></div>';
+  col.appendChild(b);w.appendChild(av);w.appendChild(col);msgs.appendChild(w);
+  msgs.scrollTop=msgs.scrollHeight;
+}
+function remTyping(){var t=document.getElementById('typ');if(t)t.remove()}
+function addErr(tx){
+  noWelcome();
+  var msgs=document.getElementById('messages');
+  var d=document.createElement('div');d.className='err-bubble';d.textContent=tx;
+  msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;
 }
 
-function clearChat() {
-  chatHistory = [{role:"system", content: SYSTEM_PROMPT}];
-  var msgs = document.getElementById('messages');
-  msgs.innerHTML = '';
-  var w = document.createElement('div');
-  w.className = 'welcome';
-  w.id = 'welcome';
-  w.innerHTML = '<div class="icon">🦁</div><h2>Chat cleared!</h2><p>Lala is ready for round 2. Bring your hardest questions 😏</p>';
-  msgs.appendChild(w);
+/* ─── TTS ─── */
+function getVoice(lc){
+  if(!window.speechSynthesis)return null;
+  var vs=window.speechSynthesis.getVoices();
+  var tl=LC[lc].vl;
+  return vs.find(function(v){return v.lang===tl})||
+         vs.find(function(v){return v.lang.startsWith(tl.split('-')[0])})||
+         vs.find(function(v){return v.lang==='en-IN'})||
+         vs.find(function(v){return v.lang.startsWith('en')})||null;
+}
+function speakText(text,btn){
+  if(!window.speechSynthesis)return;
+  window.speechSynthesis.cancel();
+  if(curUtt&&btn&&btn.classList.contains('active')){curUtt=null;if(btn){btn.classList.remove('active');btn.innerHTML='🔊'}return}
+  var clean=text.replace(/```[\s\S]*?```/g,'[code block]').replace(/`[^`]+`/g,'[code]').replace(/<[^>]+>/g,'');
+  var u=new SpeechSynthesisUtterance(clean);
+  u.voice=getVoice(curLang);u.lang=LC[curLang].vl;u.rate=1.05;u.pitch=1.0;
+  curUtt=u;
+  if(btn){btn.classList.add('active');btn.innerHTML='⏹'}
+  u.onend=u.onerror=function(){curUtt=null;if(btn){btn.classList.remove('active');btn.innerHTML='🔊'}};
+  window.speechSynthesis.speak(u);
+}
+function toggleTTS(){
+  ttsOn=!ttsOn;
+  var b=document.getElementById('tts-btn');
+  if(ttsOn){b.textContent='🔊 TTS On';b.classList.add('on')}
+  else{window.speechSynthesis&&window.speechSynthesis.cancel();b.textContent='🔇 TTS Off';b.classList.remove('on')}
 }
 
-function sendMsg() {
-  if (sending) return;
-  var input = document.getElementById('msg-input');
-  var text = input.value.trim();
-  if (!text) return;
-  if (!apiUrl) { addError('Lala is offline right now. Hold tight, I\'m booting up... ☕'); return; }
-  input.value = '';
-  input.style.height = 'auto';
-  sending = true;
-  document.getElementById('send-btn').disabled = true;
+/* ─── LANG & LEN ─── */
+function setLang(btn){
+  curLang=btn.dataset.l;
+  document.querySelectorAll('#lg .pb').forEach(function(b){b.classList.remove('active')});
+  btn.classList.add('active');
+  document.getElementById('mi').placeholder=LC[curLang].ph;
+  try{localStorage.setItem('lala_lang',curLang)}catch(e){}
+}
+function setLen(btn){
+  curLen=btn.dataset.n;
+  document.querySelectorAll('#lng .pb').forEach(function(b){b.classList.remove('active')});
+  btn.classList.add('active');
+  try{localStorage.setItem('lala_len',curLen)}catch(e){}
+}
 
-  addUserMsg(text);
-  chatHistory.push({role:"user", content: text});
+/* ─── SEND ─── */
+function sendMsg(){
+  if(sending)return;
+  var input=document.getElementById('mi');
+  var text=input.value.trim();
+  if(!text)return;
+  if(!apiUrl){addErr('🦁 Lala is still warming up... give me a sec! (Bot offline)');return}
+  input.value='';input.style.height='auto';
+  sending=true;document.getElementById('sb').disabled=true;
 
-  var bub = addBotMsg();
+  var ts=Date.now();
+  var um={role:'user',content:text,ts:ts};
+  uiMsgs.push(um);renderMsg(um);
+  chatH.push({role:'user',content:text});
+  updCount();
+  addTyping();
 
-  fetch(apiUrl + '/chat', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({messages: chatHistory})
+  fetch(apiUrl+'/chat',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({messages:apiMsgs()})
   })
-  .then(function(r) {
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    return r.json();
+  .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json()})
+  .then(function(data){
+    remTyping();
+    var reply=data.response||data.reply||data.message||JSON.stringify(data);
+    var bm={role:'bot',content:reply,ts:Date.now()};
+    uiMsgs.push(bm);chatH.push({role:'assistant',content:reply});
+    renderMsg(bm);updCount();save();
+    if(ttsOn)setTimeout(function(){speakText(reply,null)},200);
   })
-  .then(function(data) {
-    var reply = data.response || data.reply || data.message || JSON.stringify(data);
-    bub.textContent = reply;
-    chatHistory.push({role:"assistant", content: reply});
-    document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
+  .catch(function(err){
+    remTyping();
+    addErr('Lala hit a wall 😅 Error: '+err.message+' — try again!');
   })
-  .catch(function(err) {
-    bub.textContent = '';
-    var d = document.getElementById('bot-typing');
-    if (d) d.remove();
-    addError('Oops! Even Lala has bad days 😅 Error: ' + err.message + '. Try refreshing!');
-  })
-  .finally(function() {
-    sending = false;
-    document.getElementById('send-btn').disabled = false;
-    var cursor = bub.querySelector('.cursor');
-    if (cursor) cursor.remove();
-    var d = document.getElementById('bot-typing');
-    if (d) d.removeAttribute('id');
-    var b = document.getElementById('bot-bubble');
-    if (b) b.removeAttribute('id');
+  .finally(function(){
+    sending=false;document.getElementById('sb').disabled=false;
   });
 }
 
-function pollAPI() {
-  fetch('https://raw.githubusercontent.com/PranayMahendrakar/qwen-runner/main/api_url.json?t=' + Date.now())
-  .then(function(r){ return r.json(); })
-  .then(function(data) {
-    var url = data.url || data.api_url;
-    if (!url) throw new Error('no url');
-    return fetch(url + '/', {signal: AbortSignal.timeout(8000)})
-    .then(function(r) { return r.ok ? url : null; });
-  })
-  .then(function(url) {
-    if (url) {
-      apiUrl = url;
-      setStatus('online', '⚡ LALA IS LIVE');
-      clearInterval(polling);
-      polling = setInterval(pollAPI, 60000);
-    } else {
-      apiUrl = null;
-      setStatus('offline', '🔴 OFFLINE');
-    }
-  })
-  .catch(function() {
-    apiUrl = null;
-    setStatus('offline', '🔴 OFFLINE');
-  });
+/* ─── CLEAR & EXPORT ─── */
+function clearChat(){
+  window.speechSynthesis&&window.speechSynthesis.cancel();
+  chatH=[];uiMsgs=[];nuke();
+  var msgs=document.getElementById('messages');msgs.innerHTML='';
+  var w=document.createElement('div');w.className='welcome';w.id='welcome';
+  w.innerHTML='<div class="wicon">🦁</div><h2>Fresh Start! 🔥</h2><p>'+LC[curLang].gr+'</p><div class="tagline">Previous chat cleared. New vibes only ✨</div>';
+  msgs.appendChild(w);updCount();
+}
+function exportChat(){
+  if(!uiMsgs.length){addErr('Nothing to export yet!');return}
+  var lines=uiMsgs.map(function(m){return '['+fmtTime(m.ts)+'] '+(m.role==='user'?'YOU':'LALA')+':\n'+m.content+'\n'});
+  var blob=new Blob(['LALA CHAT EXPORT\n'+new Date().toLocaleString()+'\n'+'═'.repeat(40)+'\n\n'+lines.join('\n')],{type:'text/plain'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='lala-chat-'+Date.now()+'.txt';a.click();
 }
 
-document.getElementById('msg-input').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
+/* ─── RESTORE SESSION ─── */
+function restoreSession(){
+  var s=load();
+  if(!s||!s.ui||!s.ui.length)return;
+  // Restore lang
+  if(s.lang&&LC[s.lang]){
+    curLang=s.lang;
+    document.querySelectorAll('#lg .pb').forEach(function(b){b.classList.remove('active')});
+    var lb=document.querySelector('[data-l="'+curLang+'"]');
+    if(lb)lb.classList.add('active');
+    document.getElementById('mi').placeholder=LC[curLang].ph;
+  }
+  // Restore len
+  if(s.len&&LN[s.len]){
+    curLen=s.len;
+    document.querySelectorAll('#lng .pb').forEach(function(b){b.classList.remove('active')});
+    var nb=document.querySelector('[data-n="'+curLen+'"]');
+    if(nb)nb.classList.add('active');
+  }
+  chatH=s.ch||[];uiMsgs=s.ui||[];
+  noWelcome();
+  // Restored divider
+  var msgs=document.getElementById('messages');
+  var d=document.createElement('div');d.className='divider';
+  d.textContent='↩ Session restored • '+new Date(s.at).toLocaleString();
+  msgs.appendChild(d);
+  uiMsgs.forEach(function(m){renderMsg(m)});
+  updCount();
+  setTimeout(function(){msgs.scrollTop=msgs.scrollHeight},80);
+}
+
+/* ─── POLL API ─── */
+function pollAPI(){
+  fetch('https://raw.githubusercontent.com/PranayMahendrakar/qwen-runner/main/api_url.json?t='+Date.now())
+  .then(function(r){return r.json()})
+  .then(function(data){
+    var url=data.url||data.api_url;
+    if(!url)throw new Error('no url');
+    return fetch(url+'/',{signal:AbortSignal.timeout(8000)}).then(function(r){return r.ok?url:null});
+  })
+  .then(function(url){
+    if(url){apiUrl=url;setSt('online','⚡ LALA LIVE');clearInterval(polling);polling=setInterval(pollAPI,60000)}
+    else{apiUrl=null;setSt('offline','🔴 Offline')}
+  })
+  .catch(function(){apiUrl=null;setSt('offline','🔴 Offline')});
+}
+
+/* ─── INPUT EVENTS ─── */
+document.getElementById('mi').addEventListener('keydown',function(e){
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg()}
 });
-document.getElementById('msg-input').addEventListener('input', function() {
-  this.style.height = 'auto';
-  this.style.height = Math.min(this.scrollHeight, 140) + 'px';
+document.getElementById('mi').addEventListener('input',function(){
+  this.style.height='auto';this.style.height=Math.min(this.scrollHeight,140)+'px';
 });
 
-polling = setInterval(pollAPI, 15000);
+/* ─── INIT ─── */
+if(window.speechSynthesis){
+  window.speechSynthesis.getVoices();
+  window.speechSynthesis.onvoiceschanged=function(){window.speechSynthesis.getVoices()};
+}
+restoreSession();
+polling=setInterval(pollAPI,15000);
 pollAPI();
 </script>
 </body>
