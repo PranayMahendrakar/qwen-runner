@@ -82,15 +82,3 @@ jobs:
 
           echo "Chat UI live at: https://pranaymahendrakar.github.io/qwen-runner/"
           wait $APP_PID
-
-      - name: Re-trigger workflow on completion
-        if: always()
-        env:
-          GH_PAT: ${{ secrets.GH_PAT }}
-        run: |
-          echo "Workflow ending - triggering restart..."
-          curl -s -X POST \
-            -H "Authorization: token ${GH_PAT}" \
-            -H "Accept: application/vnd.github.v3+json" \
-            https://api.github.com/repos/PranayMahendrakar/qwen-runner/actions/workflows/run.yml/dispatches \
-            -d '{"ref":"main"}' && echo "Restart triggered!" || echo "Restart failed"
