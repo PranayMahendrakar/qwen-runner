@@ -9,6 +9,10 @@ on:
     paths-ignore:
       - 'api_url.json'
 
+concurrency:
+  group: qwen-runner-serve
+  cancel-in-progress: true
+
 permissions:
   contents: write
 
@@ -73,6 +77,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add api_url.json
           git commit -m "chore: update API URL [skip ci]" || echo "no change"
+          git pull --rebase "https://x-access-token:${GH_PAT}@github.com/PranayMahendrakar/qwen-runner.git" main || true
           git push "https://x-access-token:${GH_PAT}@github.com/PranayMahendrakar/qwen-runner.git" HEAD:main
 
           echo "Chat UI live at: https://pranaymahendrakar.github.io/qwen-runner/"
