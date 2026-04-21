@@ -6,7 +6,7 @@ import torch, os, threading
 app = Flask(__name__)
 CORS(app)
 
-model_name = "Qwen/Qwen2.5-0.5B-Instruct"
+model_name = "Qwen/Qwen2.5-1.5B-Instruct"
 print("Loading Qwen2.5-0.5B-Instruct...")
 
 tokenizer = AutoTokenizer.from_pretrained(model_name)
