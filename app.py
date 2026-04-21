@@ -24,7 +24,7 @@ def warmup():
         text = tokenizer.apply_chat_template(warm_msgs, tokenize=False, add_generation_prompt=True)
         enc = tokenizer([text], return_tensors="pt")
         with torch.no_grad():
-            model.generate(**enc, max_new_tokens=5, do_sample=False, pad_token_id=tokenizer.eos_token_id)
+            model.generate(**enc, max_new_tokens=150, do_sample=False, pad_token_id=tokenizer.eos_token_id)
         print("Model warmed up!")
     except Exception as e:
         print(f"Warmup error: {e}")
