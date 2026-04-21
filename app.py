@@ -12,7 +12,7 @@ print("Loading Qwen2.5-0.5B-Instruct...")
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = AutoModelForCausalLM.from_pretrained(
     model_name,
-    torch_dtype=torch.float32,
+    torch_dtype=torch.bfloat1,
     low_cpu_mem_usage=True,
 )
 model.eval()
